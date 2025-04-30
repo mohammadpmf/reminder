@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from pathlib import Path
 from environs import Env
+from celery.schedules import crontab
 
 env = Env()
 env.read_env()
@@ -28,9 +29,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True if env("DJANGO_DEBUG")=="True" else False
+DEBUG = True if env("DJANGO_DEBUG") == "True" else False
 
-ALLOWED_HOSTS = ["sbedeh.ir", "www.sbedeh.ir", "codefather1369.ir", "www.codefather1369.ir", "127.0.0.1"]
+ALLOWED_HOSTS = [
+    "sbedeh.ir",
+    "www.sbedeh.ir",
+    "codefather1369.ir",
+    "www.codefather1369.ir",
+    "127.0.0.1",
+]
 
 
 # Application definition
@@ -42,16 +49,17 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    
     # third party apps
     "crispy_forms",
     "crispy_bootstrap5",
     "django_madval",
-
+    "django_celery_beat",
+    "django_celery_results",
     #  my apps
     "accounts",
     "reminder",
 ]
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -87,22 +95,22 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
-#     }
-# }
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": env("DATABASE_NAME"),
-        "USER": env("DATABASE_USER"),
-        "PASSWORD": env("DATABASE_PASSWORD"),
-        "HOST": env("DATABASE_HOST"),
-        "PORT": env("DATABASE_PORT"),
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.mysql",
+#         "NAME": env("DATABASE_NAME"),
+#         "USER": env("DATABASE_USER"),
+#         "PASSWORD": env("DATABASE_PASSWORD"),
+#         "HOST": env("DATABASE_HOST"),
+#         "PORT": env("DATABASE_PORT"),
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -141,7 +149,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "static/"
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -156,7 +164,23 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 
 
 from django.contrib.messages import constants as messages
+
 MESSAGE_TAGS = {
     messages.ERROR: "danger",
 }
 
+# Celery settings
+CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+# CELERY_TIMEZONE = "UTC"  # Or "Asia/Tehran" if you prefer
+CELERY_TIMEZONE = "Asia/Tehran"  # Set to Iran timezone
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+CELERY_BEAT_SCHEDULE = {
+    "check-reminders-every-minute": {
+        "task": "reminder.tasks.check_and_send_reminders",
+        "schedule": crontab(minute="*"),
+    },
+}
