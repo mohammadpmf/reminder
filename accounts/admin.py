@@ -11,8 +11,8 @@ class CustomUserAdmin(UserAdmin):
     model = CustomUser
     # add_form = CustomUserCreationForm
     # form = CustomUserChangeForm
-    list_display = ["id", "username", "email"]
-    list_display_links = ["id", "username", "email"]
+    list_display = ["id", "username", "phone_number", "telegram_chat_id", "email"]
+    list_display_links = ["id", "username", "phone_number", "telegram_chat_id", "email"]
     fieldsets = (
         (None, {"fields": ("username", "password")}),
         (
@@ -21,6 +21,8 @@ class CustomUserAdmin(UserAdmin):
                 "fields": (
                     "first_name",
                     "last_name",
+                    "phone_number",
+                    "telegram_chat_id",
                     "email",
                 ),
             },
