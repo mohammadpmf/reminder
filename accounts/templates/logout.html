@@ -1,0 +1,21 @@
+{% extends "_base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block page_title %}
+خروج
+{% endblock page_title %}
+
+{% block content %}
+<div class='container-lg my-5 p-5' style="direction: rtl">
+<h1 class='c'>از خروج از حساب کاربری خود اطمینان دارید؟</h1>
+<form action="{% url 'logout' %}" method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <input type="submit" class="btn btn-outline-danger m-2 mt-5 rounded-pill px-5" value="بله">
+</form>
+</div>
+{% endblock content %}
+
+
+{% block active_enter_number %}active{% endblock active_enter_number %}

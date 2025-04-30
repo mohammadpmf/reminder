@@ -15,8 +15,6 @@ class CustomUser(AbstractUser):
             ),
         ],
         unique=True,
-        blank=False,
-        null=False,
     )
     telegram_chat_id = models.CharField(
         max_length=32,
